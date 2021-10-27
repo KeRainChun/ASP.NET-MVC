@@ -1,0 +1,236 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
+using System.Web.Mvc;
+using System.Web.Security;
+using System.Data;
+using System.Data.SqlClient;
+using prjNetFinal2.Models;
+using PagedList;
+
+namespace prjNetFinal2.Controllers
+{
+    [Authorize]
+    public class HomeController : Controller
+    {
+        [Authorize(Users = "Guo, Ke, Chen")]
+
+        public ActionResult Logout()
+        {
+            FormsAuthentication.SignOut();
+            return RedirectToAction("Login");
+        }
+
+        [AllowAnonymous]
+        public ActionResult Login()
+        {
+            return View();
+        }
+
+        [AllowAnonymous]
+        [HttpPost]
+        public ActionResult Login(string txtUid, string txtPwd)
+        {
+            string[] uidAry = new string[] { "Guo", "Ke", "Chen" };
+            string[] pwdAry = new string[] { "123", "456", "789" };
+
+            int index = -1;
+            for (int i = 0; i <= uidAry.Length; i++)
+            {
+                if (uidAry[i] == txtUid && pwdAry[i] == txtPwd)
+                {
+                    index = i;
+                    break;
+                }
+            }
+
+            if (index == -1)
+            {
+                ViewBag.Err = "帳號密碼錯誤!";
+            }
+
+            else
+            {
+                FormsAuthentication.RedirectFromLoginPage(txtUid, true);
+                return RedirectToAction("Indexx");
+            }
+            return View();
+        }
+
+        // GET: Home
+        string constr = @"Server=140.138.144.66\SQL1422;" +
+                             "database=1092netdbB;" +
+                             "uid=1092netdbB;" +
+                             "pwd=yzuim1092netdbB";
+
+        dbMovieEntities db = new dbMovieEntities();
+
+        public ActionResult page(string type = "drama")
+        {
+            ViewBag.type = db.TableMovies1081732
+                .OrderBy(TableMovies1081732 => TableMovies1081732.fEmpId)
+                .Where(m => m.fMtype == type)
+                .FirstOrDefault();
+
+            tMovie movie = new tMovie()
+            {
+                movie = db.TableMovies1081732
+                .Where(TableMovies1081732 => type == TableMovies1081732.fMtype)
+                .ToList()
+            };
+
+            return View(movie);
+        }
+
+        private List<tMovie> GetAllMovie()
+        {
+            SqlConnection con = new SqlConnection();
+            con.ConnectionString = constr;
+            SqlDataAdapter adp = new SqlDataAdapter("SELECT * FROM TableMovies1081732", con);
+            DataSet ds = new DataSet();
+            adp.Fill(ds);
+            DataTable dt = ds.Tables[0];
+            List<tMovie> Movie = new List<tMovie>();
+            for (int i = 0; i < dt.Rows.Count; i++)
+            {
+                Movie.Add(new tMovie
+                {
+                    fEmpId = dt.Rows[i]["fEmpId"].ToString(),
+                    fMName = dt.Rows[i]["fMName"].ToString(),
+                    fMtype = dt.Rows[i]["fMtype"].ToString(),
+                    fDate = DateTime.Parse(dt.Rows[i]["fDate"].ToString()),
+                    fRName = dt.Rows[i]["fRName"].ToString(),
+                    fGender = dt.Rows[i]["fGender"].ToString(),
+                    fAge = dt.Rows[i]["fAge"].ToString()
+                });
+            }
+            return Movie;
+        }
+
+        private tMovie GetMovie(string fEmpId)
+        {
+            SqlConnection con = new SqlConnection();
+            con.ConnectionString = constr;
+            SqlCommand cmd = new SqlCommand("SELECT * FROM TableMovies1081732 WHERE fEmpId=@fEmpId", con);
+            cmd.Parameters.Add(new SqlParameter("@fEmpId", SqlDbType.NVarChar)).Value = fEmpId;
+            SqlDataAdapter adp = new SqlDataAdapter(cmd);
+            DataSet ds = new DataSet();
+            adp.Fill(ds);
+            DataTable dt = ds.Tables[0];
+            tMovie emp = new tMovie
+            {
+                fEmpId = dt.Rows[0]["fEmpId"].ToString(),
+                fMName = dt.Rows[0]["fMName"].ToString(),
+                fMtype = dt.Rows[0]["fMtype"].ToString(),
+                fDate = DateTime.Parse(dt.Rows[0]["fDate"].ToString()),
+                fRName = dt.Rows[0]["fRName"].ToString(),
+                fGender = dt.Rows[0]["fGender"].ToString(),
+                fAge = dt.Rows[0]["fAge"].ToString()
+            };
+            return emp;
+        }
+
+        //ExcuteCmd()方法可執行SqlCommand物件來編輯資料夾
+        private void ExcuteCmd(SqlCommand cmd)
+        {
+            SqlConnection con = new SqlConnection();
+            con.ConnectionString = constr;
+            con.Open();
+            cmd.Connection = con;
+            cmd.ExecuteNonQuery();
+            con.Close();
+        }
+        public ActionResult Indexx()
+        {
+            return View(GetAllMovie());
+        }
+
+
+
+
+        public ActionResult Create()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public ActionResult Create(tMovie Movie)
+        {
+            if (ModelState.IsValid)
+            {
+                ViewBag.Error = false;
+                try
+                {
+                    SqlCommand sqlCommand = new SqlCommand();
+                    sqlCommand.CommandText = "INSERT INTO TableMovies1081732(fEmpId,fMName,fMtype,fDate,fRName,fGender,fAge)" + "VALUES(@fEmpId,@fMName,@fMtype,@fDate,@fRName,@fGender,@fAge)";
+                    sqlCommand.Parameters.Add(new SqlParameter("@fEmpId", SqlDbType.NVarChar)).Value = Movie.fEmpId;
+                    sqlCommand.Parameters.Add(new SqlParameter("@fMName", SqlDbType.NVarChar)).Value = Movie.fMName;
+                    sqlCommand.Parameters.Add(new SqlParameter("@fMtype", SqlDbType.NVarChar)).Value = Movie.fMtype;
+                    sqlCommand.Parameters.Add(new SqlParameter("@fDate", SqlDbType.Date)).Value = Movie.fDate;
+                    sqlCommand.Parameters.Add(new SqlParameter("@fRName", SqlDbType.NVarChar)).Value = Movie.fRName;
+                    sqlCommand.Parameters.Add(new SqlParameter("@fGender", SqlDbType.NVarChar)).Value = Movie.fGender;
+                    sqlCommand.Parameters.Add(new SqlParameter("@fAge", SqlDbType.Int)).Value = Movie.fAge;
+
+                    ExcuteCmd(sqlCommand);
+                    return RedirectToAction("Indexx");
+                }
+                catch (Exception ex)
+                {
+                    ViewBag.Error = true;
+                    return View(Movie);
+                }
+            }
+            return View(Movie);
+        }
+
+        public ActionResult Edit(string fEmpId)
+        {
+            return View(GetMovie(fEmpId));
+        }
+
+        [HttpPost]
+        public ActionResult Edit(tMovie Movie)
+        {
+            if (ModelState.IsValid)
+            {
+                SqlCommand sqlCommand = new SqlCommand();
+                sqlCommand.CommandText = "UPDATE TableMovies1081732 SET fMName=@fMName, fMtype=@fMtype, fDate=@fDate, fRName=@fRName, fGender=@fGender, fAge=@fAge WHERE fEmpId=@fEmpId";
+                sqlCommand.Parameters.Add(new SqlParameter("@fEmpId", SqlDbType.NVarChar)).Value = Movie.fEmpId;
+                sqlCommand.Parameters.Add(new SqlParameter("@fMName", SqlDbType.NVarChar)).Value = Movie.fMName;
+                sqlCommand.Parameters.Add(new SqlParameter("@fMtype", SqlDbType.NVarChar)).Value = Movie.fMtype;
+                sqlCommand.Parameters.Add(new SqlParameter("@fDate", SqlDbType.Date)).Value = Movie.fDate;
+                sqlCommand.Parameters.Add(new SqlParameter("@fRName", SqlDbType.NVarChar)).Value = Movie.fRName;
+                sqlCommand.Parameters.Add(new SqlParameter("@fGender", SqlDbType.NVarChar)).Value = Movie.fGender;
+                sqlCommand.Parameters.Add(new SqlParameter("@fAge", SqlDbType.Int)).Value = Movie.fAge;
+                ExcuteCmd(sqlCommand);
+                return RedirectToAction("Indexx");
+
+            }
+            return View(Movie);
+        }
+        public ActionResult Delete(string fEmpId)
+        {
+            SqlCommand sqlCommand = new SqlCommand();
+            sqlCommand.CommandText = "DELETE FROM TableMovies1081732 WHERE fEmpId=@fEmpId";
+            sqlCommand.Parameters.Add(new SqlParameter("@fEmpId", SqlDbType.NVarChar)).Value = fEmpId;
+            ExcuteCmd(sqlCommand);
+            return RedirectToAction("Indexx");
+        }
+
+        public ActionResult Index2()
+        {
+            //Index2的檢視頁面
+            return View();
+        }
+        [HttpPost]
+        public ActionResult ShowR(string dir)
+        {
+
+            var Show = db.TableMovies1081732
+                .ToList()
+                .Where(TableMovies1081732 => dir == TableMovies1081732.fRName);
+            return View(Show);
+        }
+    }
+}
