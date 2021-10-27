@@ -1,0 +1,41 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
+
+using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
+
+namespace prjNetFinal2.Models
+{
+    public class tMovie
+    {
+        [DisplayName("電影編號")]
+        [Required(ErrorMessage = "電影編號不可空白")]
+        public string fEmpId { get; set; }
+
+        [DisplayName("電影名稱")]
+        [Required(ErrorMessage = "電影名稱不可不填")]
+        public string fMName { get; set; }
+
+        [DisplayName("電影類型")]
+        [Required(ErrorMessage = "電影類型不可不填")]
+        public string fMtype { get; set; }
+
+        [DisplayName("上映日期")]
+        [DataType(DataType.Date)]
+        public Nullable<System.DateTime> fDate { get; set; }
+
+        [DisplayName("導演名稱")]
+        [Required(ErrorMessage = "導演名稱不可不填")]
+        public string fRName { get; set; }
+
+        [DisplayName("性別")]
+        public string fGender { get; set; }
+
+        [DisplayName("年齡")]
+        public string fAge { get; set; }
+
+        public List<TableMovies1081732> movie { get; set; }
+    }
+}
