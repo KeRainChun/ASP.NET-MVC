@@ -1,0 +1,30 @@
+@model IEnumerable<prjNetFinal2.Models.TableMovies1081732>
+
+@{
+    ViewBag.Title = "搜尋導演";
+}
+
+<div>
+    <h4 class="col-md-3">搜尋導演</h4>
+    <p></p>
+    <form method="post" class="col-md-9" action="@Url.Action("ShowR")">
+        <p>
+            <select id="導演" name="dir" class="form-control">
+
+                <option value="Yong-hwa Kim">Yong-hwa Kim</option>
+                <option value="Bong Joon Ho">Bong Joon Ho</option>
+                <option value="Joe Johnston">Joe Johnston</option>
+                <option value="Miyazaki Hayao">Miyazaki Hayao</option>
+                <option value="Roland Emmerich">Roland Emmerich</option>
+                <option value="Christopher Nolan">Christopher Nolan</option>
+                <option value="Ang Lee">Ang Lee</option>
+                <option value="Michael Bay">Michael Bay</option>
+                <option value="Te-Sheng Wei">Te-Sheng Wei</option>
+                <option value="Giuseppe Tornatore">Giuseppe Tornatore</option>
+
+            </select>
+        </p>
+        <p><input value="查詢" name="s" type="submit" class="btn btn-default" /></p>
+
+    </form>
+</div>
